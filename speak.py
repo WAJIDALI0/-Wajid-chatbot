@@ -49,7 +49,7 @@ st.markdown("<div class='main'>", unsafe_allow_html=True)
 st.markdown("<div class='title'>🤖 Meet WAJID - Your Smart Voice Chatbot</div>", unsafe_allow_html=True)
 st.markdown("<div class='subtitle'>Ask anything by typing or speaking – WAJID replies in voice and text.</div>", unsafe_allow_html=True)
 
-# --- SPEECH INPUT BUTTON ---
+# --- SPEECH INPUT BUTTON WITH AUTO-SUBMIT ---
 components.html("""
 <script>
     let recognition;
@@ -61,11 +61,18 @@ components.html("""
 
         recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
-            const inputs = window.parent.document.querySelectorAll('input');
+            const inputs = window.parent.document.querySelectorAll('input[type="text"]');
+            const buttons = window.parent.document.querySelectorAll('button');
+
             for (let input of inputs) {
-                if (input.type === 'text') {
-                    input.value = transcript;
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.value = transcript;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+
+            // Find and click the submit button
+            for (let btn of buttons) {
+                if (btn.innerText.includes("📨 Submit")) {
+                    btn.click();
                     break;
                 }
             }
@@ -79,7 +86,7 @@ components.html("""
     }
 </script>
 <button onclick="startRecognition()" style="background-color:#4CAF50;color:white;padding:10px 20px;font-size:16px;border:none;border-radius:5px;cursor:pointer;margin-bottom:10px;">🎤 Human Ask (Speak)</button>
-""", height=70)
+""", height=100)
 
 # --- TEXT INPUT ---
 user_input = st.text_input("Enter your message to WAJID:")
@@ -92,13 +99,13 @@ if submit and user_input:
     st.text_area("", value=response, height=180, max_chars=None)
 
     # Voice output
-    if st.button("🔊 Speak WAJID's Reply"):
-        components.html(f"""
-            <script>
-                var msg = new SpeechSynthesisUtterance({response!r});
-                window.speechSynthesis.speak(msg);
-            </script>
-        """, height=0)
+    st.markdown("Click below to hear WAJID's voice:")
+    st.button("🔊 Speak WAJID's Reply", on_click=lambda: components.html(f"""
+        <script>
+            var msg = new SpeechSynthesisUtterance({response!r});
+            window.speechSynthesis.speak(msg);
+        </script>
+    """, height=0))
 
 # --- CHAT HISTORY ---
 with st.expander("🕒 Chat History"):
