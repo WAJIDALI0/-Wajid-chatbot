@@ -51,24 +51,34 @@ st.markdown("<div class='subtitle'>Ask anything by typing or speaking – WAJID 
 
 # --- SPEECH INPUT BUTTON ---
 components.html("""
-    <script>
-    const streamlitInput = window.parent.document.querySelector('input[data-testid="stTextInput"]');
+<script>
     let recognition;
     function startRecognition() {
-        recognition = new(window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-US';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
         recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
-            streamlitInput.value = transcript;
-            streamlitInput.dispatchEvent(new Event("input", { bubbles: true }));
+            const inputs = window.parent.document.querySelectorAll('input');
+            for (let input of inputs) {
+                if (input.type === 'text') {
+                    input.value = transcript;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    break;
+                }
+            }
         };
+
+        recognition.onerror = function(event) {
+            alert("Speech Recognition Error: " + event.error);
+        };
+
         recognition.start();
     }
-    </script>
-    <button onclick="startRecognition()" style="background-color:#4CAF50;color:white;padding:10px 20px;font-size:16px;border:none;border-radius:5px;cursor:pointer;margin-bottom:10px;">🎤 Human Ask (Speak)</button>
+</script>
+<button onclick="startRecognition()" style="background-color:#4CAF50;color:white;padding:10px 20px;font-size:16px;border:none;border-radius:5px;cursor:pointer;margin-bottom:10px;">🎤 Human Ask (Speak)</button>
 """, height=70)
 
 # --- TEXT INPUT ---
@@ -81,7 +91,7 @@ if submit and user_input:
     st.success("WAJID says:")
     st.text_area("", value=response, height=180, max_chars=None)
 
-    # Voice output button
+    # Voice output
     if st.button("🔊 Speak WAJID's Reply"):
         components.html(f"""
             <script>
